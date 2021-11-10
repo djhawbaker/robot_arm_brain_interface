@@ -6,12 +6,16 @@ Author: David Hawbaker
 
 import time
 import numpy as np
+import pandas as pd
+import matplotlib
+import matplotlib.pyplot as plt
 
 from brainflow.board_shim import BoardShim, BrainFlowInputParams, LogLevels, BoardIds, BrainFlowError
 from brainflow.data_filter import DataFilter, FilterTypes, AggOperations, WindowFunctions, DetrendOperations
 from brainflow.ml_model import MLModel, BrainFlowMetrics, BrainFlowClassifiers, BrainFlowModelParams
 from brainflow.exit_codes import *
 
+matplotlib.use('Agg')
 
 class BoardInterface:
     def __init__(self):
@@ -23,6 +27,7 @@ class BoardInterface:
         self.master_board_id = self.board.get_board_id()
         self.board = BoardShim(self.board_id, self.params)
         self.sampling_rate = BoardShim.get_sampling_rate(self.master_board_id)
+        self.eeg_channels = BoardShim.get_eeg_channels(self.board_id)
 
     def init_brainflow_params(self):
         BoardShim.enable_dev_board_logger()
@@ -37,8 +42,35 @@ class BoardInterface:
         self.params.timeout = 0
         self.params.file = 'output.csv'
 
-    def denoise(self):
-        pass
+    def denoise(self, data):
+        df = pd.DataFrame(np.transpose(data))
+        plt.figure()
+        df[self.eeg_channels].plot(subplots=True)
+        plt.savefig('before_processing.png')
+
+        # demo for denoising, apply different methods to different channels for demo
+        for count, channel in enumerate(self.eeg_channels):
+            # first of all you can try simple moving median or moving average with different window size
+            if count == 0:
+                DataFilter.perform_rolling_filter(data[channel], 3, AggOperations.MEAN.value)
+            elif count == 1:
+                DataFilter.perform_rolling_filter(data[channel], 3, AggOperations.MEDIAN.value)
+            # if methods above dont work for your signal you can try wavelet based denoising
+            # feel free to try different functions and decomposition levels
+            elif count == 2:
+                DataFilter.perform_wavelet_denoising(data[channel], 'db6', 3)
+            elif count == 3:
+                DataFilter.perform_wavelet_denoising(data[channel], 'bior3.9', 3)
+            elif count == 4:
+                DataFilter.perform_wavelet_denoising(data[channel], 'sym7', 3)
+            elif count == 5:
+                # with synthetic board this one looks like the best option, but it depends on many circumstances
+                DataFilter.perform_wavelet_denoising(data[channel], 'coif3', 3)
+
+        df = pd.DataFrame(np.transpose(data))
+        plt.figure()
+        df[self.eeg_channels].plot(subplots=True)
+        plt.savefig('after_processing.png')
 
     def start_stream(self):
         self.board.prepare_session()
@@ -95,5 +127,5 @@ class BoardInterface:
 
         return concentrate_result, relax_result
 
-    def write_data(self, data):
-        DataFilter.write_file(data, self.params.file, 'a')
+    def write_data(self, data, file):
+        DataFilter.write_file(data, file, 'a')

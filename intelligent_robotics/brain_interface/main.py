@@ -16,7 +16,9 @@ def main():
     while True:
         try:
             data = board_i.get_data()
-            board_i.write_data(data)
+            clean_data = board_i.denoise(data)
+            board_i.write_data(data, "raw_data.csv")
+            board_i.write_data(clean_data, "clean_data.csv")
 
         except KeyboardInterrupt:
             board_i.end_stream()
