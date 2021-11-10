@@ -19,21 +19,22 @@ matplotlib.use('Agg')
 
 class BoardInterface:
     def __init__(self):
+        BoardShim.enable_dev_board_logger()
         # Initialize the parameters
         self.params = BrainFlowInputParams()
         self.init_brainflow_params()
 
-        self.board_id = 1  # GANGLION_BOARD
-        self.master_board_id = self.board.get_board_id()
+        self.board_id = BoardIds.GANGLION_BOARD.value
         self.board = BoardShim(self.board_id, self.params)
+
+        self.master_board_id = self.board.get_board_id()
         self.sampling_rate = BoardShim.get_sampling_rate(self.master_board_id)
         self.eeg_channels = BoardShim.get_eeg_channels(self.board_id)
 
     def init_brainflow_params(self):
-        BoardShim.enable_dev_board_logger()
 
         self.params.ip_port = 0
-        self.params.serial_port = '/dev/ttyACM0'
+        self.params.serial_port = '/dev/serial/by-id/usb-Bluegiga_Low_Energy_Dongle_1-if00'
         self.params.mac_address = 'c0:b9:23:13:2c:be'
         self.params.other_info = ''
         self.params.serial_number = ''
@@ -42,13 +43,14 @@ class BoardInterface:
         self.params.timeout = 0
         self.params.file = 'output.csv'
 
-    def denoise(self, data):
+    def denoise(self, data, filename):
         df = pd.DataFrame(np.transpose(data))
         plt.figure()
         df[self.eeg_channels].plot(subplots=True)
-        plt.savefig('before_processing.png')
+        plt.savefig(filename + 'before_processing.png')
+        plt.close()
 
-        # demo for denoising, apply different methods to different channels for demo
+        # demo for de-noising, apply different methods to different channels for demo
         for count, channel in enumerate(self.eeg_channels):
             # first of all you can try simple moving median or moving average with different window size
             if count == 0:
@@ -70,7 +72,8 @@ class BoardInterface:
         df = pd.DataFrame(np.transpose(data))
         plt.figure()
         df[self.eeg_channels].plot(subplots=True)
-        plt.savefig('after_processing.png')
+        plt.savefig(filename + 'after_processing.png')
+        plt.close()
 
     def start_stream(self):
         self.board.prepare_session()
@@ -90,9 +93,9 @@ class BoardInterface:
         print("###                    Successfully Stopped Streaming                        ###")
         print("################################################################################")
 
-    def get_data(self):
+    def get_data(self, seconds=5):
         BoardShim.log_message(LogLevels.LEVEL_INFO.value, 'start sleeping in the main thread')
-        time.sleep(5)  # Get data once per second
+        time.sleep(seconds)  # Get data once per second
 
         data = self.board.get_board_data(num_samples=200)
         # get latest 256 packages or less, doesnt remove them from internal buffer
@@ -128,4 +131,8 @@ class BoardInterface:
         return concentrate_result, relax_result
 
     def write_data(self, data, file):
-        DataFilter.write_file(data, file, 'a')
+        # TODO use proper except handling
+        try:
+            DataFilter.write_file(data, file, 'a')
+        except:
+            print("Empty buffer error while writing data to file: ", file)
