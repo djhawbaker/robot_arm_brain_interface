@@ -20,7 +20,8 @@ def main():
             time.sleep(seconds)  # Get data once per second
 
             data = board_i.get_data(samples=200)
-            clean_data = board_i.denoise(data, "raw_data_" + str(i) + "_")
+            # TODO improve filename. ie read for existing files and increment
+            clean_data = board_i.denoise(data, "raw_data_" + str(i))
             board_i.write_data(data, "raw_data_" + str(i) + ".csv")
             # TODO get clean data to write
             # board_i.write_data(clean_data, "clean_data_" + str(i) + ".csv")
