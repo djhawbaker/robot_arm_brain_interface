@@ -15,7 +15,11 @@ def main():
     while True:
         try:
             # EEG data
-            data = board_i.get_data(seconds=20)
+            seconds = 10
+            BoardShim.log_message(LogLevels.LEVEL_INFO.value, 'start sleeping in the main thread')
+            time.sleep(seconds)  # Get data once per second
+
+            data = board_i.get_data(samples=200)
             clean_data = board_i.denoise(data, "raw_data_" + str(i) + "_")
             board_i.write_data(data, "raw_data_" + str(i) + ".csv")
             # TODO get clean data to write

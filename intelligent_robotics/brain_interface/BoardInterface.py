@@ -93,11 +93,9 @@ class BoardInterface:
         print("###                    Successfully Stopped Streaming                        ###")
         print("################################################################################")
 
-    def get_data(self, seconds=5):
-        BoardShim.log_message(LogLevels.LEVEL_INFO.value, 'start sleeping in the main thread')
-        time.sleep(seconds)  # Get data once per second
+    def get_data(self, samples=200):
 
-        data = self.board.get_board_data(num_samples=200)
+        data = self.board.get_board_data(num_samples=samples)
         # get latest 256 packages or less, doesnt remove them from internal buffer
         # data = board.get_current_board_data (256)
 
