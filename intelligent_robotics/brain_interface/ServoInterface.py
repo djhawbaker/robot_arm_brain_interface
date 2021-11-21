@@ -71,6 +71,18 @@ class ServoInterface:
             angle = 110
         self.kit.servo[2].angle = angle
 
+    def set_wrist(self, angle):
+        """ Set the angle of the wrist 0 is left 180 is right
+
+        :param angle: 0-180
+        :return: None
+        """
+        if angle < 0:
+            angle = 0
+        elif angle > 180:
+            angle = 180
+        self.kit.servo[6].angle = angle
+
     def make_fist(self):
         """ Close all fingers to make a fist
 
