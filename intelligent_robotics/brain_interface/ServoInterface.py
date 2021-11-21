@@ -70,3 +70,48 @@ class ServoInterface:
         elif angle > 110:
             angle = 110
         self.kit.servo[2].angle = angle
+
+    def make_fist(self):
+        """ Close all fingers to make a fist
+
+        :return: None
+        """
+        self.set_index(30)
+        self.set_middle(30)
+        self.set_ring(30)
+        self.set_pinky(30)
+        self.set_thumb(30)
+
+    def open_hand(self):
+        """ Open all of the fingers
+
+        :return: None
+        """
+        self.set_thumb(110)
+        self.set_index(110)
+        self.set_middle(110)
+        self.set_ring(110)
+        self.set_pinky(110)
+
+    def make_peace(self):
+        """ Make the peace sign
+
+        :return: None
+        """
+        self.set_index(110)
+        self.set_middle(110)
+        self.set_ring(30)
+        self.set_pinky(30)
+        self.set_thumb(30)
+
+    def rock_on(self):
+        """ Rock on
+
+        :return: None
+        """
+        self.set_index(110)
+        self.set_middle(30)
+        self.set_ring(30)
+        self.set_pinky(110)
+        self.set_thumb(30)
+
