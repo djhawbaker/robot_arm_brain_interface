@@ -47,16 +47,17 @@ class BoardInterface:
         self.params.timeout = 0
         self.params.file = 'output.csv'
 
-    def denoise(self, data, filename='denoise', save_plot=True):
+    def denoise(self, data, filename='denoise', save_after_plot=True, save_before_plot=False):
         """ Denoises the signal and saves a plot of it
 
         :param data: data from board to denoise
         :param filename: output base filename
-        :param save_plot: Boolean to save the plot or not
+        :param save_after_plot: Boolean to save the plot before processing or not
+        :param save_before_plot: Boolean to save the plot after processing or not
         :return: processed data frame
         """
         df = pd.DataFrame(np.transpose(data))
-        if save_plot:
+        if save_before_plot:
             plt.figure()
             df[self.eeg_channels].plot(subplots=True)
             plt.savefig(filename + '_before_processing.png')
@@ -67,7 +68,7 @@ class BoardInterface:
             DataFilter.perform_wavelet_denoising(data[channel], 'haar', 4)
 
         df = pd.DataFrame(np.transpose(data))
-        if save_plot:
+        if save_after_plot:
             plt.figure()
             df[self.eeg_channels].plot(subplots=True)
             plt.savefig(filename + '_after_processing.png')
