@@ -3,8 +3,10 @@
 Class: Intelligent Robotics
 Author: David Hawbaker
 """
+import time
+from brainflow.board_shim import BoardShim, LogLevels
 from BoardInterface import BoardInterface
-#from EEGModels import EEGNet, DeepConvNet
+# from EEGModels import EEGNet, DeepConvNet
 
 
 def main():
@@ -19,13 +21,12 @@ def main():
             BoardShim.log_message(LogLevels.LEVEL_INFO.value, 'start sleeping in the main thread')
             time.sleep(seconds)  # Get data once per second
 
-            data = board_i.get_data(samples=200)
+            data = board_i.get_data(samples=400)
             # TODO improve filename. ie read for existing files and increment
             clean_data = board_i.denoise(data, "raw_data_" + str(i))
             board_i.write_data(data, "raw_data_" + str(i) + ".csv")
-            # TODO get clean data to write
-            # board_i.write_data(clean_data, "clean_data_" + str(i) + ".csv")
-            board_i.process_input(data)
+            board_i.write_data(clean_data.to_string, "clean_data_" + str(i) + ".csv")
+            # board_i.process_input(data)
 
             # Neural Network
             """

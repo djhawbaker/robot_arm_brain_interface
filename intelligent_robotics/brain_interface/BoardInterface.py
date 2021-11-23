@@ -37,7 +37,6 @@ class BoardInterface:
 
         :return: None
         """
-
         self.params.ip_port = 0
         self.params.serial_port = '/dev/serial/by-id/usb-Bluegiga_Low_Energy_Dongle_1-if00'
         self.params.mac_address = 'c0:b9:23:13:2c:be'
@@ -65,26 +64,7 @@ class BoardInterface:
 
         # demo for de-noising, apply different methods to different channels for demo
         for count, channel in enumerate(self.eeg_channels):
-
-            DataFilter.perform_wavelet_denoising(data[channel], 'haar', 3)
-            """
-            # first of all you can try simple moving median or moving average with different window size
-            if count == 0:
-                DataFilter.perform_rolling_filter(data[channel], 3, AggOperations.MEAN.value)
-            elif count == 1:
-                DataFilter.perform_rolling_filter(data[channel], 3, AggOperations.MEDIAN.value)
-            # if methods above dont work for your signal you can try wavelet based denoising
-            # feel free to try different functions and decomposition levels
-            elif count == 2:
-                DataFilter.perform_wavelet_denoising(data[channel], 'db6', 3)
-            elif count == 3:
-                DataFilter.perform_wavelet_denoising(data[channel], 'bior3.9', 3)
-            elif count == 4:
-                DataFilter.perform_wavelet_denoising(data[channel], 'sym7', 3)
-            elif count == 5:
-                # with synthetic board this one looks like the best option, but it depends on many circumstances
-                DataFilter.perform_wavelet_denoising(data[channel], 'coif3', 3)
-            """
+            DataFilter.perform_wavelet_denoising(data[channel], 'haar', 4)
 
         df = pd.DataFrame(np.transpose(data))
         if save_plot:
@@ -182,8 +162,9 @@ class BoardInterface:
         :param file: Name including path of file to write
         :return: None
         """
-        # TODO use proper except handling
         try:
-            DataFilter.write_file(data, file, 'a')
-        except:
-            print("Empty buffer error while writing data to file: ", file)
+            f = open(file, 'w')
+            f.write(data)
+            f.close
+        except Exception as exception:
+            print("Caught: ", type(exception).__name__, ": ", exception.__str__(), ", while writing to ", file)
