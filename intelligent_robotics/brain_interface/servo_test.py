@@ -16,6 +16,10 @@ def main():
             si.make_peace()
         elif i == 'r':
             si.rock_on()
+        elif i == 'wl':
+            si.set_wrist(0)
+        elif i == 'wr':
+            si.set_wrist(180)
         else:
             si.open_hand()
 
