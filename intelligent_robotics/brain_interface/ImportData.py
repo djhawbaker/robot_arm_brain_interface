@@ -3,6 +3,7 @@
 Class: Intelligent Robotics
 Author: David Hawbaker
 """
+import csv
 import pandas as pd
 
 
@@ -12,10 +13,13 @@ def get_labels(filename):
     :param filename: Name of file including path
     :return: list of labels
     """
-    f = open(filename, 'r')
-    line = f.readline()
-    labels = line.split(' ')
-    f.close()
+    with open(filename, 'r') as f:
+        line = f.readline()
+        line = line.replace('\n', '')
+        labels = line.split(' ')
+
+    labels = list(map(int, labels))
+
     return labels
 
 
@@ -25,6 +29,15 @@ def get_data(filename):
     :param filename: Name of file including path
     :return: column data
     """
-    df = pd.read_csv(filename)
-    column_data = df['2']  # you can also use df['column_name']
+    column_data = []
+    with open(filename, 'r') as f:
+        column = 3
+        first_row = True
+        lines = f.readlines()
+        for line in lines:
+            if not first_row:
+                row = line.split(' ')
+                column_data.append(int(float(row[column])))
+            first_row = False
+
     return column_data
