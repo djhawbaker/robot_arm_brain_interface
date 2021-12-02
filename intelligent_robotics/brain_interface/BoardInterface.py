@@ -58,7 +58,7 @@ class BoardInterface:
         """
         df = pd.DataFrame(np.transpose(data))
         if save_before_plot:
-            plt.figure()
+            plt.figure(clear=True)
             df[self.eeg_channels].plot(subplots=True)
             plt.savefig(filename + '_before_processing.png')
             plt.close()
@@ -69,7 +69,7 @@ class BoardInterface:
 
         df = pd.DataFrame(np.transpose(data))
         if save_after_plot:
-            plt.figure()
+            plt.figure(clear=True)
             df[self.eeg_channels].plot(subplots=True)
             plt.savefig(filename + '_after_processing.png')
             plt.close()

@@ -6,11 +6,13 @@ Author: David Hawbaker
 import matplotlib.pyplot as plt
 import copy
 import pandas as pd
+import os
 
 from contextlib import redirect_stdout
 
 from ImportData import get_labels, get_data
-
+from os import listdir
+from os.path import isfile, isdir, join
 
 from tensorflow.keras.datasets.fashion_mnist import load_data
 import skimage.measure
@@ -27,6 +29,7 @@ from tensorflow.keras.wrappers.scikit_learn import KerasClassifier
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import KFold
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
+from sklearn import metrics
 
 
 class NeuralNetwork:
@@ -42,16 +45,31 @@ class NeuralNetwork:
         self.model = None
         self.df = None
 
+    @staticmethod
+    def generate_filename(run, K, k):
+        """ Generates the filename to save
+
+        :param run: The run this data was linked with
+        :param K: How many clusters
+        :param k:
+        :return: The filename
+        """
+        if not os.path.exists('output'):
+            os.makedirs('output')
+
+        filename = 'output/kmeans_' + str(K) + '_' + str(k) + '_' + str(run)
+        return filename
+
     def create_model(self, save_summary=False):
         model = Sequential()
         model.add(Conv1D(8, 5, padding='same', input_shape=(400, 1)))
         model.add(BatchNormalization())
         model.add(LeakyReLU(alpha=0.2))
-        model.add(Dropout(0.4))
+        #model.add(Dropout(0.4))
 
         # This layer was added to get more parameters.
         """
-        model.add(Conv2D(1024, (5, 5), strides=(2, 2), padding='same'))
+        model.add(Conv1D(48, 5, strides=2, padding='same'))
         model.add(BatchNormalization())
         model.add(LeakyReLU(alpha=0.2))
         model.add(Dropout(0.4))
@@ -60,7 +78,7 @@ class NeuralNetwork:
         model.add(Conv1D(24, 5, padding='same'))
         model.add(BatchNormalization())
         model.add(LeakyReLU(alpha=0.2))
-        model.add(Dropout(0.4))
+        #model.add(Dropout(0.4))
 
         model.add(Flatten())
         model.add(Dense(4, activation='sigmoid'))
@@ -78,34 +96,28 @@ class NeuralNetwork:
 
     def load_data(self):
         base = '/home/david/projects/psu_fall_2021/intelligent_robotics/brain_interface/data/'
-        single = 'single_blink/'
-        double = 'double_blinks/'
-        triple = 'three_blinks/'
+        single_path = base + 'single_blink/'
+        double_path = base + 'double_blinks/'
+        triple_path = base + 'three_blinks/'
+        paths = [single_path, double_path, triple_path]
         labels = []
 
-        # One blink
-        for y in range(2):
-            for x in range(20):
-                data = get_data(base + single + str(y+1) + '/output/clean_data_' + str(x) + '.csv')
-                if data is not None:
-                    self.X.append(data)
-            labels += get_labels(base + single + str(y+1) + '/labels.txt')
-
-        # Two blinks
-        for y in range(3):
-            for x in range(20):
-                data = get_data(base + double + str(y+1) + '/output/clean_data_' + str(x) + '.csv')
-                if data is not None:
-                    self.X.append(data)
-            labels += get_labels(base + double + str(y+1) + '/labels.txt')
-
-        # Three blinks
-        for y in range(3):
-            for x in range(20):
-                data = get_data(base + triple + str(y+1) + '/output/clean_data_' + str(x) + '.csv')
-                if data is not None:
-                    self.X.append(data)
-            labels += get_labels(base + triple + str(y+1) + '/labels.txt')
+        for path in paths:
+            # Get how many directories of data we have
+            dirs = [d for d in listdir(path) if isdir(join(path, d))]
+            dirs.sort()
+            for y in dirs:
+                data_path = path + y + '/output/'
+                files = [f for f in listdir(data_path) if isfile(join(data_path, f))]
+                files.sort()
+                for file in files:
+                    data = get_data(data_path + file)
+                    if data is not None:
+                        self.X.append(data)
+                # labels += get_labels(path + y + '/labels.txt')
+                new_labels = get_labels(path + y + '/labels.txt')
+                labels += new_labels
+                assert(len(files) == len(new_labels))
 
         self.Y = labels
         # self.process_labels(labels)
@@ -121,6 +133,7 @@ class NeuralNetwork:
         final_train_df.drop('categories', axis=1, inplace=True)
         final_train_df.columns = ['Nothing', 'OneBlink', 'TwoBlinks', 'ThreeBlinks']
         print(final_train_df)
+        #self.train_y = final_train_df
 
         test_encoder = OneHotEncoder(handle_unknown='ignore')
         test_encoder_df = pd.DataFrame(test_encoder.fit_transform(train_df[['categories']]).toarray())
@@ -130,26 +143,36 @@ class NeuralNetwork:
         print(final_test_df)
 
     def process_data(self):
-        tx = self.X[:128]
+        first_90_p = int(len(self.X) * 0.9)
+        tx = self.X[:first_90_p]
         arr = np.array(tx)
         arr.shape = (len(arr), 400, 1)
         self.train_x = arr
 
-        tx = self.X[128:]
+        tx = self.X[first_90_p:]
         arr = np.array(tx)
         arr.shape = (len(arr), 400, 1)
         self.test_x = arr
 
         # Setup one hot encoding
-        ty = self.Y[:128]
+        ty = self.Y[:first_90_p]
         arr = np.array(ty)
         self.train_y = arr
 
-        ty = self.Y[128:]
+        ty = self.Y[first_90_p:]
         arr = np.array(ty)
         self.test_y = arr
 
-        self.process_labels()
+        # self.process_labels()
+        encoder = LabelEncoder()
+        encoder.fit(self.train_y)
+        encoded_Y = encoder.transform(self.train_y)
+        self.train_y = to_categorical(encoded_Y)
+
+        encoder = LabelEncoder()
+        encoder.fit(self.test_y)
+        encoded_Y = encoder.transform(self.test_y)
+        self.test_y = to_categorical(encoded_Y)
 
     """
     @staticmethod
@@ -172,7 +195,13 @@ class NeuralNetwork:
     """
 
     def train(self):
-        history = self.model.fit(self.train_x, self.train_y, epochs=1000, shuffle=True)
+        estimator = KerasClassifier(build_fn=self.create_model, epochs=200, batch_size=5, verbose=0)
+        kfold = KFold(n_splits=10, shuffle=True)
+        results = cross_val_score(estimator, self.train_x, self.train_y, cv=kfold)
+        print("Baseline: %.2f%% (%.2f%%)" % (results.mean() * 100, results.std() * 100))
+        print('done')
+
+        #history = self.model.fit(self.train_x, self.train_y, epochs=200, shuffle=True)
         #print("history: ", history)
         #estimator = KerasClassifier(build_fn=self.create_model, epochs=200, batch_size=5, verbose=0)
         #return estimator
@@ -183,6 +212,10 @@ class NeuralNetwork:
         #kfold = KFold(n_splits=10, shuffle=True)
         #results = cross_val_score(estimator, self.X, self.dummy_y, cv=kfold)
         #print("Baseline: %.2f%% (%.2f%%)" % (results.mean()*100, results.std()*100))
+        predictions = self.model.predict(self.test_x)
+        y_pred = (predictions > 0.5)
+        matrix = metrics.confusion_matrix(self.test_y.argmax(axis=1), y_pred.argmax(axis=1))
+        print(matrix)
 
     def save_summary(self):
         pass
