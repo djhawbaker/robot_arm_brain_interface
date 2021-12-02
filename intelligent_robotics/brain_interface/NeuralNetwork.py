@@ -143,36 +143,62 @@ class NeuralNetwork:
         print(final_test_df)
 
     def process_data(self):
-        first_90_p = int(len(self.X) * 0.9)
-        tx = self.X[:first_90_p]
-        arr = np.array(tx)
+        # Select equal amounts of each label type for training and testing
+        # Start by getting indices of each label
+        test_percent = 0.9
+        label_lists = [[i for i, value in enumerate(self.Y) if value == 0],
+                       [i for i, value in enumerate(self.Y) if value == 1],
+                       [i for i, value in enumerate(self.Y) if value == 2],
+                       [i for i, value in enumerate(self.Y) if value == 3]]
+
+        num_from_each = []
+        for i in range(len(label_lists)):
+            num_from_each.append(int(len(label_lists[i]) * test_percent))
+
+        train_i = []
+        test_i = []
+        for i, num in enumerate(num_from_each):
+            shuffle(label_lists[i])
+            train_i += label_lists[i][:num]
+            test_i += label_lists[i][num:]
+
+        # Get values from indices
+        train_x = []
+        train_y = []
+        test_x = []
+        test_y = []
+        for i in train_i:
+            train_x.append(self.X[i])
+            train_y.append(self.Y[i])
+
+        for i in test_i:
+            test_x.append(self.X[i])
+            test_y.append(self.Y[i])
+
+        arr = np.array(train_x)
         arr.shape = (len(arr), 400, 1)
         self.train_x = arr
 
-        tx = self.X[first_90_p:]
-        arr = np.array(tx)
+        arr = np.array(test_x)
         arr.shape = (len(arr), 400, 1)
         self.test_x = arr
 
         # Setup one hot encoding
-        ty = self.Y[:first_90_p]
-        arr = np.array(ty)
-        self.train_y = arr
+        self.train_y = np.array(train_y)
+        self.test_y = np.array(test_y)
 
-        ty = self.Y[first_90_p:]
-        arr = np.array(ty)
-        self.test_y = arr
-
-        # self.process_labels()
+        self.process_labels()
+        """
         encoder = LabelEncoder()
         encoder.fit(self.train_y)
-        encoded_Y = encoder.transform(self.train_y)
-        self.train_y = to_categorical(encoded_Y)
+        encoded_y = encoder.transform(self.train_y)
+        self.train_y = to_categorical(encoded_y)
 
         encoder = LabelEncoder()
         encoder.fit(self.test_y)
-        encoded_Y = encoder.transform(self.test_y)
-        self.test_y = to_categorical(encoded_Y)
+        encoded_y = encoder.transform(self.test_y)
+        self.test_y = to_categorical(encoded_y)
+        """
 
     """
     @staticmethod
@@ -195,13 +221,15 @@ class NeuralNetwork:
     """
 
     def train(self):
+        """
         estimator = KerasClassifier(build_fn=self.create_model, epochs=200, batch_size=5, verbose=0)
         kfold = KFold(n_splits=10, shuffle=True)
         results = cross_val_score(estimator, self.train_x, self.train_y, cv=kfold)
         print("Baseline: %.2f%% (%.2f%%)" % (results.mean() * 100, results.std() * 100))
         print('done')
+        """
 
-        #history = self.model.fit(self.train_x, self.train_y, epochs=200, shuffle=True)
+        history = self.model.fit(self.train_x, self.train_y, epochs=200, shuffle=True)
         #print("history: ", history)
         #estimator = KerasClassifier(build_fn=self.create_model, epochs=200, batch_size=5, verbose=0)
         #return estimator

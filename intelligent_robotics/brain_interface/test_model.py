@@ -12,4 +12,4 @@ if __name__ == "__main__":
     nn.create_model()
     nn.load_data()
     nn.train()
-    #nn.test()
+    nn.test()
