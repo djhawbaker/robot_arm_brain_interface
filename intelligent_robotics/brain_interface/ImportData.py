@@ -3,8 +3,6 @@
 Class: Intelligent Robotics
 Author: David Hawbaker
 """
-import csv
-import pandas as pd
 
 
 def get_labels(filename):
