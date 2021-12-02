@@ -11,6 +11,21 @@ class ServoInterface:
     def __init__(self):
         self.kit = ServoKit(channels=8)
 
+    def interpret_classification(self, classification):
+        """ Interpret NN Classification
+
+        :param classification: class to interpret
+        :return: None
+        """
+        if classification == 0:
+            pass
+        elif classification == 1:
+            self.make_fist()
+        elif classification == 2:
+            self.open_hand()
+        elif classification == 3:
+            self.rock_on()
+
     def set_thumb(self, angle):
         """ Set the angle of the thumb 30 is closed 110 is open
 
@@ -126,4 +141,3 @@ class ServoInterface:
         self.set_ring(30)
         self.set_pinky(110)
         self.set_thumb(30)
-

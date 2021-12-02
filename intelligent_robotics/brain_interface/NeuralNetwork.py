@@ -14,7 +14,7 @@ from os.path import isfile, isdir, join
 import numpy as np
 from numpy.random import shuffle
 from tensorflow.keras.layers import BatchNormalization, Conv1D, Dense, Flatten, Dropout, LeakyReLU
-from tensorflow.keras.models import Sequential, clone_model
+from tensorflow.keras.models import Sequential, clone_model, load_model
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.utils import plot_model
 from sklearn.preprocessing import OneHotEncoder
@@ -26,7 +26,7 @@ class NeuralNetwork:
         self.X = []
         self.Y = []
         self.train_x = []
-        self.train_y= []
+        self.train_y = []
         self.test_x = []
         self.test_y = []
         self.dummy_y = None
@@ -51,9 +51,14 @@ class NeuralNetwork:
         return filename
 
     @staticmethod
-    def get_unique_filename(base_path):
+    def get_unique_filename(base_path, base_name):
+        if not os.path.exists(base_path):
+            os.makedirs(base_path)
+
         # TODO
-        return 'temp'
+        i = 1
+
+        return base_name + '_' + str(i)
 
     def create_model(self, save_summary=False):
         model = Sequential()
@@ -88,6 +93,9 @@ class NeuralNetwork:
             self.save_summary('categorical_classifier', model)
 
         return model
+
+    def load_model(self, path_to_model):
+        self.model = load_model(path_to_model)
 
     def load_data(self):
         base = '/home/david/projects/psu_fall_2021/intelligent_robotics/brain_interface/data/'
@@ -185,7 +193,7 @@ class NeuralNetwork:
     def train(self):
         self.history = self.model.fit(self.train_x, self.train_y, epochs=400, shuffle=True)
         save_path = '/home/david/projects/psu_fall_2021/intelligent_robotics/brain_interface/models/'
-        unique_name = self.get_unique_filename(save_path)
+        unique_name = self.get_unique_filename(save_path, 'model')
 
         self.model.save(save_path + unique_name)
 
@@ -198,6 +206,30 @@ class NeuralNetwork:
 
         matrix = metrics.confusion_matrix(self.test_y, y_preds)
         self.save_summary(eval_loss, matrix)
+
+    @staticmethod
+    def prepare_data(data):
+        """ Prepare the data of a single live input for classification
+
+        :param data: The denoised data
+        :return: NP Array of the data in the right shape
+        """
+        # Get the right column
+        # TODO verify this
+        alpha_channel = data[3].tolist()
+        # Format it correctly
+        arr = np.array(alpha_channel)
+        arr.shape = (400, 1)
+        return arr
+
+    def classify(self, data):
+        """ Accept a single input and return the neural network classification
+
+        :param data: Data to classify pandas data frame
+        :return: classification: 0, 1, 2, 3
+        """
+        prediction = self.model.predict(data)
+        return np.unravel_index(np.argmax(prediction, axis=None), prediction.shape)[0]
 
     def save_summary(self, loss, confusion_matrix):
         print("History: ", self.history)
