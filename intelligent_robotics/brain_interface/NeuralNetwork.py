@@ -229,7 +229,7 @@ class NeuralNetwork:
         print('done')
         """
 
-        history = self.model.fit(self.train_x, self.train_y, epochs=200, shuffle=True)
+        history = self.model.fit(self.train_x, self.train_y, epochs=400, shuffle=True)
         #print("history: ", history)
         #estimator = KerasClassifier(build_fn=self.create_model, epochs=200, batch_size=5, verbose=0)
         #return estimator
@@ -241,8 +241,17 @@ class NeuralNetwork:
         #results = cross_val_score(estimator, self.X, self.dummy_y, cv=kfold)
         #print("Baseline: %.2f%% (%.2f%%)" % (results.mean()*100, results.std()*100))
         predictions = self.model.predict(self.test_x)
-        y_pred = (predictions > 0.5)
-        matrix = metrics.confusion_matrix(self.test_y.argmax(axis=1), y_pred.argmax(axis=1))
+        #print("predictions: ", predictions)
+        y_preds = []
+        for x in predictions:
+            y_preds.append(np.unravel_index(np.argmax(x, axis=None), x.shape)[0])
+
+        #ind = np.unravel_index(np.argmax(predictions, axis=None), predictions.shape)
+        #print("preds: ", ind)
+        #y_pred = (predictions.argmax() > 0.5)
+        #print("test_y: ", self.test_y)
+        #print("y_pred: ", y_preds)
+        matrix = metrics.confusion_matrix(self.test_y, y_preds) #predictions.argmax())
         print(matrix)
 
     def save_summary(self):
