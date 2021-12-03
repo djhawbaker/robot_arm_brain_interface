@@ -47,7 +47,7 @@ class BoardInterface:
         self.params.timeout = 0
         self.params.file = 'output.csv'
 
-    def denoise(self, data, filename='denoise', save_after_plot=True, save_before_plot=False):
+    def denoise(self, data, filename='denoise', save_after_plot=False, save_before_plot=False):
         """ Denoises the signal and saves a plot of it
 
         :param data: data from board to denoise

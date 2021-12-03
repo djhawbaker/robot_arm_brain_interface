@@ -98,7 +98,7 @@ class NeuralNetwork:
         self.model = load_model(path_to_model)
 
     def load_data(self):
-        base = '/home/david/projects/psu_fall_2021/intelligent_robotics/brain_interface/data/'
+        base = '/home/pi/projects/code/data/'
         single_path = base + 'single_blink/'
         double_path = base + 'double_blinks/'
         triple_path = base + 'three_blinks/'
@@ -192,7 +192,7 @@ class NeuralNetwork:
 
     def train(self):
         self.history = self.model.fit(self.train_x, self.train_y, epochs=400, shuffle=True)
-        save_path = '/home/david/projects/psu_fall_2021/intelligent_robotics/brain_interface/models/'
+        save_path = '/home/pi/projects/code/models/'
         unique_name = self.get_unique_filename(save_path, 'model')
 
         self.model.save(save_path + unique_name)
@@ -216,11 +216,11 @@ class NeuralNetwork:
         """
         # Get the right column
         # TODO verify this
-        alpha_channel = data[3].tolist()
+        alpha_channel = data[2].to_numpy()
         # Format it correctly
-        arr = np.array(alpha_channel)
-        arr.shape = (400, 1)
-        return arr
+        #arr = np.array(alpha_channel)
+        alpha_channel.shape = (1, 400, 1)
+        return alpha_channel
 
     def classify(self, data):
         """ Accept a single input and return the neural network classification
@@ -228,8 +228,17 @@ class NeuralNetwork:
         :param data: Data to classify pandas data frame
         :return: classification: 0, 1, 2, 3
         """
+        #print("Data: ", data)
         prediction = self.model.predict(data)
-        return np.unravel_index(np.argmax(prediction, axis=None), prediction.shape)[0]
+        print("prediction: ", prediction)
+        #print("max: ", np.argmax(prediction, axis=None))
+        y_preds = []
+        for x in prediction:
+            y_preds.append(np.unravel_index(np.argmax(x, axis=None), x.shape)[0])
+        #print("y_preds: ", y_preds)
+
+        return y_preds[0]
+        #return np.unravel_index(np.argmax(prediction[0], axis=None), prediction.shape)[0]
 
     def save_summary(self, loss, confusion_matrix):
         print("History: ", self.history)
