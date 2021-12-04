@@ -11,8 +11,11 @@ from ServoInterface import ServoInterface
 
 
 def main():
-    nn = NeuralNetwork()
-    model_path = '/home/david/projects/psu_fall_2021/intelligent_robotics/brain_interface/models/model_1'
+    # Modify this to set the root directory and model to use
+    base_path = '/home/david/projects/psu_fall_2021/intelligent_robotics/brain_interface/'
+    model_path = base_path + 'models/model_2'
+
+    nn = NeuralNetwork(base_path)
     nn.load_model(model_path)
 
     si = ServoInterface()
@@ -25,15 +28,15 @@ def main():
         try:
             # EEG data
             seconds = 2
-            BoardShim.log_message(LogLevels.LEVEL_INFO.value, 'start sleeping in the main thread')
+            BoardShim.log_message(LogLevels.LEVEL_INFO.value, 'Give your blink command now')
             time.sleep(seconds)
 
             data = board_i.get_data(samples=400)
             # TODO improve filename. ie read for existing files and increment
             clean_data = board_i.denoise(data, "raw_data_" + str(i))
+            # Uncomment to write data to file
             # board_i.write_data(data, "raw_data_" + str(i) + ".csv")
             # board_i.write_data(clean_data.to_string(), "clean_data_" + str(i) + ".csv")
-            # board_i.process_input(data)
 
             # Neural Network
             processed_data = nn.prepare_data(clean_data)
