@@ -22,7 +22,12 @@ from sklearn import metrics
 
 
 class NeuralNetwork:
-    def __init__(self):
+    def __init__(self, base_file_path):
+        """ Initialize the Neural Network class
+
+        :param base_file_path: Path to the root of the directory of the project
+        """
+        self.base_path = base_file_path
         self.X = []
         self.Y = []
         self.train_x = []
@@ -52,15 +57,36 @@ class NeuralNetwork:
 
     @staticmethod
     def get_unique_filename(base_path, base_name):
+        """ Generate a unique filename. Increment the number appended to the end
+
+        :param base_path: Path to where file will be saved
+        :param base_name: Base of the filename to increment the number for
+        :return: Filename
+        """
         if not os.path.exists(base_path):
             os.makedirs(base_path)
 
-        # TODO
-        i = 1
+        files = [f for f in listdir(base_path)]
+        files.sort()
+        nums = []
+        for file in files:
+            if base_name == file[:len(base_name)]:
+                nums.append(int(file[len(base_name) + 1:]))
 
-        return base_name + '_' + str(i)
+        try:
+            num = max(nums) + 1
+        except ValueError:
+            num = 1
+
+        return base_name + '_' + str(num)
 
     def create_model(self, save_summary=False):
+        """ Create the neural network model to be trained
+
+        :param save_summary: Boolean to save the model summary or not
+        :return: The model
+        """
+
         model = Sequential()
         model.add(Conv1D(8, 5, padding='same', input_shape=(400, 1)))
         model.add(BatchNormalization())
@@ -95,13 +121,21 @@ class NeuralNetwork:
         return model
 
     def load_model(self, path_to_model):
+        """ Load the saved trained neural network model
+
+        :param path_to_model: Location of the saved model
+        :return: None
+        """
         self.model = load_model(path_to_model)
 
     def load_data(self):
-        base = '/home/pi/projects/code/data/'
-        single_path = base + 'single_blink/'
-        double_path = base + 'double_blinks/'
-        triple_path = base + 'three_blinks/'
+        """ Load the training data
+
+        :return: None
+        """
+        single_path = self.base_path + '/data/single_blink/'
+        double_path = self.base_path + '/data/double_blinks/'
+        triple_path = self.base_path + '/data/three_blinks/'
         paths = [single_path, double_path, triple_path]
         labels = []
 
@@ -117,7 +151,6 @@ class NeuralNetwork:
                     data = get_data(data_path + file)
                     if data is not None:
                         self.X.append(data)
-                # labels += get_labels(path + y + '/labels.txt')
                 new_labels = get_labels(path + y + '/labels.txt')
                 labels += new_labels
                 assert(len(files) == len(new_labels))
@@ -126,6 +159,10 @@ class NeuralNetwork:
         self.process_data()
 
     def process_labels(self):
+        """ Format the one hot encoded training data labels
+
+        :return: None
+        """
         train_df = pd.DataFrame({'categories': self.train_y})
         test_df = pd.DataFrame({'categories': self.test_y})
 
@@ -143,10 +180,14 @@ class NeuralNetwork:
         final_test_df.columns = ['Nothing', 'OneBlink', 'TwoBlinks', 'ThreeBlinks']
         print(final_test_df)
 
-    def process_data(self):
-        # Select equal amounts of each label type for training and testing
-        # Start by getting indices of each label
-        test_percent = 0.9
+    def process_data(self, test_percent=0.9):
+        """ Process the training data for training
+        Select equal amounts of each label type for training and testing
+        Start by getting indices of each label
+
+        :param test_percent: The percent of data that should be used for training
+        :return: None
+        """
         label_lists = [[i for i, value in enumerate(self.Y) if value == 0],
                        [i for i, value in enumerate(self.Y) if value == 1],
                        [i for i, value in enumerate(self.Y) if value == 2],
@@ -191,13 +232,21 @@ class NeuralNetwork:
         self.process_labels()
 
     def train(self):
+        """ Train the network
+
+        :return: None
+        """
         self.history = self.model.fit(self.train_x, self.train_y, epochs=400, shuffle=True)
-        save_path = '/home/pi/projects/code/models/'
+        save_path = self.base_path + '/models/'
         unique_name = self.get_unique_filename(save_path, 'model')
 
         self.model.save(save_path + unique_name)
 
     def test(self):
+        """ Test the network
+
+        :return: None
+        """
         eval_loss = self.model.evaluate(self.test_x, self.test_y)
         predictions = self.model.predict(self.test_x)
         y_preds = []
@@ -228,20 +277,22 @@ class NeuralNetwork:
         :param data: Data to classify pandas data frame
         :return: classification: 0, 1, 2, 3
         """
-        #print("Data: ", data)
         prediction = self.model.predict(data)
         print("prediction: ", prediction)
-        #print("max: ", np.argmax(prediction, axis=None))
         y_preds = []
         for x in prediction:
             y_preds.append(np.unravel_index(np.argmax(x, axis=None), x.shape)[0])
-        #print("y_preds: ", y_preds)
 
         return y_preds[0]
-        #return np.unravel_index(np.argmax(prediction[0], axis=None), prediction.shape)[0]
 
     def save_summary(self, loss, confusion_matrix):
+        """ Save the results of training the network
+
+        :param loss: The network loss
+        :param confusion_matrix: The confusion matrix
+        :return: None
+        """
+        # TODO save this data
         print("History: ", self.history)
         print("Eval loss: ", loss)
         print(confusion_matrix)
-        # TODO save this data
