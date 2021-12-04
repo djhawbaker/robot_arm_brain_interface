@@ -108,43 +108,7 @@ class BoardInterface:
         :return: The raw data collected
         """
         data = self.board.get_board_data(num_samples=samples)
-        # get latest 256 packages or less, doesnt remove them from internal buffer
-        # data = board.get_current_board_data (256)
-
-        # get 200 data samples and remove it from internal buffer
         return data
-
-    def process_input(self, data):
-        """ Runs the input data through the ML algorithm and returns a classification
-        TODO update this to my NN
-
-        :param data: Data to process. Denoise before this
-        :return: Classification
-        """
-        eeg_channels = BoardShim.get_eeg_channels(int(self.master_board_id))
-        bands = DataFilter.get_avg_band_powers(data, eeg_channels, self.sampling_rate, True)
-        feature_vector = np.concatenate((bands[0], bands[1]))
-        print(feature_vector)
-
-        # calc concentration
-        concentration_params = BrainFlowModelParams(BrainFlowMetrics.CONCENTRATION.value,
-                                                    BrainFlowClassifiers.KNN.value)
-        concentration = MLModel(concentration_params)
-        concentration.prepare()
-        concentrate_result = concentration.predict(feature_vector)
-        print('Concentration: %f' % concentrate_result)
-        concentration.release()
-
-        # calc relaxation
-        relaxation_params = BrainFlowModelParams(BrainFlowMetrics.RELAXATION.value,
-                                                 BrainFlowClassifiers.REGRESSION.value)
-        relaxation = MLModel(relaxation_params)
-        relaxation.prepare()
-        relax_result = relaxation.predict(feature_vector)
-        print('Relaxation: %f' % relax_result)
-        relaxation.release()
-
-        return concentrate_result, relax_result
 
     @staticmethod
     def read_file(filename):
@@ -164,8 +128,7 @@ class BoardInterface:
         :return: None
         """
         try:
-            f = open(file, 'w')
-            f.write(data)
-            f.close
+            with open(file, 'w') as f:
+                f.write(data)
         except Exception as exception:
             print("Caught: ", type(exception).__name__, ": ", exception.__str__(), ", while writing to ", file)

@@ -2,6 +2,8 @@
 """
 Class: Intelligent Robotics
 Author: David Hawbaker
+
+Use this script to collect data from the EEG for training
 """
 import time
 from brainflow.board_shim import BoardShim, LogLevels
