@@ -19,15 +19,19 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.utils import plot_model
 from sklearn.preprocessing import OneHotEncoder
 from sklearn import metrics
+from random import randint, seed
+
+seed()
 
 
 class NeuralNetwork:
-    def __init__(self, base_file_path):
+    def __init__(self, base_file_path, epochs=400):
         """ Initialize the Neural Network class
 
         :param base_file_path: Path to the root of the directory of the project
         """
         self.base_path = base_file_path
+        self.epochs = epochs
         self.X = []
         self.Y = []
         self.train_x = []
@@ -138,6 +142,7 @@ class NeuralNetwork:
         triple_path = self.base_path + '/data/three_blinks/'
         paths = [single_path, double_path, triple_path]
         labels = []
+        shifted = []
 
         for path in paths:
             # Get how many directories of data we have
@@ -151,9 +156,15 @@ class NeuralNetwork:
                     data = get_data(data_path + file)
                     if data is not None:
                         self.X.append(data)
+                        split = randint(100, 300)
+                        shifted.append(data[split:] + data[:split])
                 new_labels = get_labels(path + y + '/labels.txt')
                 labels += new_labels
                 assert(len(files) == len(new_labels))
+
+                # Add shifted data as well
+                self.X += shifted
+                labels += new_labels
 
         self.Y = labels
         self.process_data()
@@ -255,7 +266,7 @@ class NeuralNetwork:
 
         :return: None
         """
-        self.history = self.model.fit(self.train_x, self.train_y, epochs=400, shuffle=True)
+        self.history = self.model.fit(self.train_x, self.train_y, epochs=self.epochs, shuffle=True)
         save_path = self.base_path + '/models/'
         unique_name = self.get_unique_filename(save_path, 'model')
 
@@ -283,7 +294,7 @@ class NeuralNetwork:
         :return: NP Array of the data in the right shape
         """
         # Shift data to normalize across people
-        mean = data[2].mean()[0]
+        mean = data[2].mean()
         # Level that the network was trained on
         baseline = -923
         difference = int(abs(baseline) - abs(mean))

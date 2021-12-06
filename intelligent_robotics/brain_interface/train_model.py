@@ -7,7 +7,7 @@ Author: David Hawbaker
 from NeuralNetwork import NeuralNetwork
 
 if __name__ == "__main__":
-    nn = NeuralNetwork()
+    nn = NeuralNetwork('/home/david/projects/psu_fall_2021/intelligent_robotics/brain_interface/')
 
     nn.create_model()
     nn.load_data()
