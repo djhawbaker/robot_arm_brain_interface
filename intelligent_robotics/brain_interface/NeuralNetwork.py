@@ -158,6 +158,25 @@ class NeuralNetwork:
         self.Y = labels
         self.process_data()
 
+    def load_test_data(self, path):
+        """ Load the test training data
+        NOTE Just for validating recorded test data
+
+        :return: Data
+        """
+        return_data = []
+
+        data_path = path + '/output/'
+        files = [f for f in listdir(data_path) if isfile(join(data_path, f))]
+        files.sort()
+        for file in files:
+            data = get_data(data_path + file)
+            if data is not None:
+                return_data.append(data)
+
+        return return_data
+
+
     def process_labels(self):
         """ Format the one hot encoded training data labels
 
@@ -263,11 +282,43 @@ class NeuralNetwork:
         :param data: The denoised data
         :return: NP Array of the data in the right shape
         """
+        # Shift data to normalize across people
+        mean = data[2].mean()[0]
+        # Level that the network was trained on
+        baseline = -923
+        difference = int(abs(baseline) - abs(mean))
+        if mean < baseline:
+            data[2] += difference
+        elif mean > baseline:
+            data[2] -= difference
+
         # Get the right column
-        # TODO verify this
         alpha_channel = data[2].to_numpy()
+
         # Format it correctly
-        #arr = np.array(alpha_channel)
+        alpha_channel.shape = (1, 400, 1)
+        return alpha_channel
+
+    @staticmethod
+    def prepare_test_data(data):
+        """ Prepare the data of a single recorded test input for classification
+
+        :param data: The denoised data
+        :return: NP Array of the data in the right shape
+        """
+        # Get the right column
+        df = pd.DataFrame(np.transpose(data))
+        mean = df.mean()[0]
+
+        baseline = -923
+        difference = int(abs(baseline) - abs(mean))
+        if mean < baseline:
+            df += difference
+        elif mean > baseline:
+            df -= difference
+
+        alpha_channel = df.to_numpy()
+        # Format it correctly
         alpha_channel.shape = (1, 400, 1)
         return alpha_channel
 
