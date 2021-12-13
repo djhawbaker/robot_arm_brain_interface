@@ -2,6 +2,10 @@
 """
 Class: Intelligent Robotics
 Author: David Hawbaker
+
+This is the main program. Run it on the Raspberry Pi once the EEG and robot arm are all connected
+It will read the brain waves of the user and interpret 3 blink commands to move the fingers of the
+robot hand.
 """
 import time
 from brainflow.board_shim import BoardShim, LogLevels
@@ -12,7 +16,8 @@ from ServoInterface import ServoInterface
 
 def main():
     # Modify this to set the root directory and model to use
-    base_path = '/home/david/projects/psu_fall_2021/intelligent_robotics/brain_interface/'
+    base_path = '/your/full/path/to/directory'
+    # Select which trained model to use
     model_path = base_path + 'models/model_2'
 
     nn = NeuralNetwork(base_path)
@@ -34,7 +39,7 @@ def main():
             data = board_i.get_data(samples=400)
             # TODO improve filename. ie read for existing files and increment
             clean_data = board_i.denoise(data, "raw_data_" + str(i))
-            # Uncomment to write data to file
+            # Uncomment to write csv data to file
             # board_i.write_data(data, "raw_data_" + str(i) + ".csv")
             # board_i.write_data(clean_data.to_string(), "clean_data_" + str(i) + ".csv")
 

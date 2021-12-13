@@ -3,17 +3,13 @@
 Class: Intelligent Robotics
 Author: David Hawbaker
 """
-
-import time
 import numpy as np
 import pandas as pd
 import matplotlib
 import matplotlib.pyplot as plt
 
-from brainflow.board_shim import BoardShim, BrainFlowInputParams, LogLevels, BoardIds, BrainFlowError
-from brainflow.data_filter import DataFilter, FilterTypes, AggOperations, WindowFunctions, DetrendOperations
-from brainflow.ml_model import MLModel, BrainFlowMetrics, BrainFlowClassifiers, BrainFlowModelParams
-from brainflow.exit_codes import *
+from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds
+from brainflow.data_filter import DataFilter
 
 matplotlib.use('Agg')
 
@@ -63,7 +59,6 @@ class BoardInterface:
             plt.savefig(filename + '_before_processing.png')
             plt.close()
 
-        # demo for de-noising, apply different methods to different channels for demo
         for count, channel in enumerate(self.eeg_channels):
             DataFilter.perform_wavelet_denoising(data[channel], 'haar', 4)
 

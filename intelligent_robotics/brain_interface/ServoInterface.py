@@ -3,7 +3,6 @@
 Class: Intelligent Robotics
 Author: David Hawbaker
 """
-import time
 from adafruit_servokit import ServoKit
 
 

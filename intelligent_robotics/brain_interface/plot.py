@@ -1,7 +1,12 @@
 #!/usr/bin/python3
+"""
+Class: Intelligent Robotics
+Author: David Hawbaker
+
+Plot data
+"""
 import pandas as pd
 import plotly.express as px
-import sys
 
 
 def main():
@@ -12,8 +17,8 @@ def main():
     df = pd.read_csv(inputfile, delimiter='\t')
     print(df.columns)
     print(df.head())
-    x = df['Time'] #you can also use df['column_name']
-    y = df['B'] #you can also use df['column_name']
+    x = df['Time']
+    y = df['B']
     fig = px.line(df, y='B', range_x=(0, 400), range_y=(-1300, 0), title='Brain waves')
     fig.show()
     f = open(outputfile, 'w')

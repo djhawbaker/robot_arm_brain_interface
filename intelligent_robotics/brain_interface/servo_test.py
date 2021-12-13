@@ -1,4 +1,10 @@
 #!/usr/bin/python3
+"""
+Class: Intelligent Robotics
+Author: David Hawbaker
+
+Use this file to test the robot hand movements
+"""
 from ServoInterface import ServoInterface
 
 

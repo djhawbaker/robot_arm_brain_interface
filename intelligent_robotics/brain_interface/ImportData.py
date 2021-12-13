@@ -2,6 +2,8 @@
 """
 Class: Intelligent Robotics
 Author: David Hawbaker
+
+Use this file to read training data and labels from disk
 """
 
 

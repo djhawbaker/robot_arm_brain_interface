@@ -1,5 +1,10 @@
 #!/usr/bin/python3
+"""
+Class: Intelligent Robotics
+Author: David Hawbaker
 
+Use this script to test denoising the signal
+"""
 from BoardInterface import BoardInterface
 
 bi = BoardInterface()

@@ -3,7 +3,6 @@
 Class: Intelligent Robotics
 Author: David Hawbaker
 """
-import matplotlib.pyplot as plt
 import pandas as pd
 import os
 
@@ -14,9 +13,8 @@ from os.path import isfile, isdir, join
 import numpy as np
 from numpy.random import shuffle
 from tensorflow.keras.layers import BatchNormalization, Conv1D, Dense, Flatten, Dropout, LeakyReLU
-from tensorflow.keras.models import Sequential, clone_model, load_model
+from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.utils import plot_model
 from sklearn.preprocessing import OneHotEncoder
 from sklearn import metrics
 from random import randint, seed
@@ -186,7 +184,6 @@ class NeuralNetwork:
                 return_data.append(data)
 
         return return_data
-
 
     def process_labels(self):
         """ Format the one hot encoded training data labels
